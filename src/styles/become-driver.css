@@ -1,0 +1,76 @@
+/* become-driver.css */
+
+.become__driver {
+    background-color: #f7f7f7;
+    padding: 60px 0;
+  }
+  
+  .become__driver-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 0 20px;
+  }
+  
+  .become__driver-img {
+    flex: 1 1 45%;
+    max-width: 45%;
+  }
+  
+  .become__driver-img img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  
+  .become__driver-content {
+    flex: 1 1 45%;
+    max-width: 45%;
+  }
+  
+  .become__driver-title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .become__driver-btn {
+    padding: 15px 30px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #ff6f61;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .become__driver-btn:hover {
+    background-color: #e85a4f;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .become__driver-container {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .become__driver-img,
+    .become__driver-content {
+      max-width: 100%;
+    }
+  
+    .become__driver-title {
+      text-align: center;
+    }
+  
+    .become__driver-btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+  

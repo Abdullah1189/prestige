@@ -1,0 +1,89 @@
+/* hero-slider.css */
+
+/* Base Slider Styling */
+.hero__slider {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .slider__item {
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .slider__item-01 {
+    background: url("../path-to-your-image-01.jpg") no-repeat center center/cover;
+  }
+  
+  .slider__item-02 {
+    background: url("../path-to-your-image-02.jpg") no-repeat center center/cover;
+  }
+  
+  .slider__item-03 {
+    background: url("../path-to-your-image-03.jpg") no-repeat center center/cover;
+  }
+  
+  /* Slider Content Styling */
+  .slider__content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4); /* Dark overlay for readability */
+  }
+  
+  .slider__content h4,
+  .slider__content h1 {
+    color: #ffffff;
+    margin-bottom: 15px;
+  }
+  
+  .slider__content h4 {
+    font-size: 1.25rem;
+    font-weight: 300;
+  }
+  
+  .slider__content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+  
+  .reserve__btn {
+    background-color: #ff6f61;
+    border: none;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  
+  .reserve__btn:hover {
+    background-color: #e65e54;
+  }
+  
+  .reserve__btn a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  @media (max-width: 768px) {
+    .slider__content h4 {
+      font-size: 1rem;
+    }
+  
+    .slider__content h1 {
+      font-size: 1.75rem;
+    }
+  
+    .reserve__btn {
+      font-size: 0.9rem;
+      padding: 8px 16px;
+    }
+  }
+  

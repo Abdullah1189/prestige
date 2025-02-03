@@ -1,0 +1,46 @@
+/* src/components/BookingForm.css */
+.booking-form {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    padding: 10px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .booking-form {
+      width: 100%;
+      padding: 0 15px;
+    }
+  
+    .btn-primary {
+      padding: 8px;
+    }
+  }
+  
+  @media (max-width: 430px) {
+    .form-control {
+      padding: 8px;
+      font-size: 0.875rem;
+    }
+  
+    .btn-primary {
+      padding: 8px;
+      font-size: 0.9rem;
+    }
+  }
+  

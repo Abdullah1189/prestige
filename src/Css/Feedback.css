@@ -1,0 +1,32 @@
+/* src/pages/Feedback.css */
+.feedback {
+    padding: 50px;
+    background-color: #f4f7f6;
+    text-align: center;
+  }
+  
+  h2 {
+    color: #333;
+  }
+  
+  form {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    resize: vertical;
+  }
+  
+  @media (max-width: 768px) {
+    textarea {
+      font-size: 0.9rem;
+    }
+  }
+  

@@ -1,0 +1,31 @@
+/* src/pages/Login.css */
+.login {
+    padding: 50px;
+    background: url('/assets/login-bg.jpg') no-repeat center center/cover;
+    color: #fff;
+    text-align: center;
+  }
+  
+  h2 {
+    color: #fff;
+  }
+  
+  form {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  @media (max-width: 768px) {
+    input {
+      font-size: 0.9rem;
+    }
+  }
+  

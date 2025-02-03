@@ -1,0 +1,46 @@
+/* src/pages/ExpertConsultation.css */
+.consultation {
+    padding: 50px;
+    background-color: #ffedcc;
+    text-align: center;
+  }
+  
+  h2 {
+    color: #333;
+  }
+  
+  form {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    resize: vertical;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  
+  @media (max-width: 768px) {
+    textarea {
+      font-size: 0.9rem;
+    }
+  }
+  

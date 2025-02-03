@@ -1,0 +1,66 @@
+/* src/pages/Profile.css */
+.profile {
+    padding: 50px;
+    background-color: #f4f7f6;
+    color: #333;
+    text-align: center;
+  }
+  
+  .profile-header {
+    background-color: #ff9800;
+    color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  
+  .email, .points {
+    font-size: 1.1rem;
+  }
+  
+  .booking-history {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  h3 {
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    font-size: 1rem;
+    margin: 10px 0;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .date {
+    color: #555;
+    font-style: italic;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 1.5rem;
+    }
+  
+    .email, .points, li {
+      font-size: 0.9rem;
+    }
+  }
+  

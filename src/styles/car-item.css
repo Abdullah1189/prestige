@@ -1,0 +1,106 @@
+/* car-item.css */
+
+.car__item {
+    flex: 1 1 calc(33.333% - 20px); /* 3 items per row with gap */
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .car__item:hover {
+    transform: translateY(-5px);
+  }
+  
+  .car__img {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+  
+  .car__img-content {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .car__item-content {
+    margin-top: 20px;
+  }
+  
+  .car__title {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .rent__price {
+    font-size: 1.2rem;
+    color: #ff6f61;
+  }
+  
+  .rent__price span {
+    color: #555;
+    font-weight: normal;
+  }
+  
+  .car__item-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .car__item-info span {
+    font-size: 0.9rem;
+    color: #777;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .car__buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .car__btn {
+    width: 50%;
+    padding: 10px;
+    color: white;
+    background-color: #ff6f61;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .car__btn-rent {
+    background-color: #ff6f61;
+  }
+  
+  .car__btn-details {
+    background-color: #333;
+  }
+  
+  .car__btn:hover {
+    opacity: 0.9;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .car__item {
+      flex: 1 1 calc(50% - 10px); /* 2 items per row */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .car__item {
+      flex: 1 1 100%; /* 1 item per row */
+    }
+  }
+  

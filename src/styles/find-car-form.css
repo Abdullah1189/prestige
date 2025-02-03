@@ -1,0 +1,43 @@
+/* Basic styles for the form */
+.form {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.form__fields {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.form__group {
+  margin-bottom: 15px;
+  width: 48%; /* 2 items per row */
+}
+
+.form__group input,
+.form__group select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.form__group select {
+  height: 40px;
+}
+
+.find__car-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.find__car-btn:hover {
+  background-color: #218838;
+}

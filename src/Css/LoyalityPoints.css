@@ -1,0 +1,38 @@
+/* src/components/LoyaltyPoints.css */
+.loyalty-points {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  h3 {
+    color: #333;
+    font-size: 1.5rem;
+  }
+  
+  .btn-primary {
+    padding: 10px 20px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .loyalty-points h3 {
+      font-size: 1.25rem;
+    }
+  
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+    }
+  }
+  
+  @media (max-width: 430px) {
+    .loyalty-points h3 {
+      font-size: 1rem;
+    }
+  
+    .btn-primary {
+      font-size: 0.9rem;
+      padding: 10px;
+    }
+  }
+  
