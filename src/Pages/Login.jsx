@@ -65,19 +65,16 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 mt-4">
-      <div className="flex bg-white rounded-lg shadow-lg overflow-hidden w-3/4 max-w-4xl">
-        {/* Right Column (Logo and Welcome Message) */}
-        <div className="w-1/2 bg-white flex flex-col justify-center items-center text-white p-8">
-          <img src={Logo} alt="Admin Logo" className="w-3/4 mb-8" />
-          <h1 className="text-3xl font-bold mb-4">Welcome Back!</h1>
-        </div>
-  
-        {/* Left Column (Form) */}
-        <div className="w-1/2 p-8">
-          <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
-            Log in
-          </h1>
+   <div className="flex justify-center items-center min-h-screen bg-gray-100 mt-4">
+  <div className="flex bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-2xl md:max-w-3xl lg:max-w-4xl">
+    {/* Right Column (Logo and Welcome Message) */}
+    <div className="w-1/2 bg-white flex-col justify-center items-center text-white p-8 hidden md:flex">
+      <img src={Logo} alt="Admin Logo" className="w-3/4 mb-8" />
+      <h1 className="text-3xl font-bold mb-4 text-black">Welcome Back!</h1>
+    </div>
+    {/* Left Column (Form) */}
+    <div className="w-full md:w-1/2 p-8">
+      <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">Log in</h1>
   
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="form-control">
