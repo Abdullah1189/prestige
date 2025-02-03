@@ -85,8 +85,13 @@ toast.success("✅ Profile updated successfully!", {
 };
 
 if (loading) {
-  return <div className="flex justify-center items-center h-screen">Loading...</div>; // Centered loading
-}
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+        <Toaster />
+      </div>
+    );
+  }
 
 if (!user) {
   return <div className="flex justify-center items-center h-screen">User not found.</div>; // Centered message
