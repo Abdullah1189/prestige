@@ -1,6 +1,6 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
@@ -14,11 +14,11 @@ const SignUp = () => {
     email: "",
     password: "",
     tokenPoints: 0,
-   });
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [registerError, setRegisterError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -33,7 +33,6 @@ const SignUp = () => {
 
     const { fname, lname, email, password } = formData;
 
-    // Password Validation
     if (password.length < 6) {
       const error = "⚠️ Password should be at least 6 characters.";
       setRegisterError(error);
@@ -60,30 +59,28 @@ const SignUp = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Update User Profile
       await updateProfile(user, {
         displayName: `${fname} ${lname}`,
       });
 
-      // Save User Info in Firestore
       const userData = {
         firstName: fname,
         lastName: lname,
         email: email,
         tokenPoints: 0,
         location: "Kotla arab  ali khan",
-        description:"I love to keep my car clean and shiny",
+        description: "I love to keep my car clean and shiny",
         createdAt: new Date().toISOString(),
       };
+
       await setDoc(doc(db, "users", user.uid), userData);
 
       toast.success("🎉 Registration successful! Welcome!");
       setIsLoading(false);
 
-      // Navigate to /login after successful signup
       setTimeout(() => {
         navigate("/profile");
-      }, 4000); // Add a small delay before navigation to let the toast message display
+      }, 4000);
     } catch (error) {
       const errorMsg = `❌ Registration failed: ${error.message}`;
       setRegisterError(errorMsg);
@@ -93,18 +90,25 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 my-16 ">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 ">
       <Toaster />
-      <div className="flex bg-white rounded-lg shadow-lg overflow-hidden w-3/4 max-w-4xl">
+      <div className=" flex bg-white rounded-lg shadow-lg overflow-hidden w-full max-w-xl md:max-w-3xl lg:max-w-4xl">
+        {/* Right Column (Logo and Welcome Message) - Hidden on Mobile */}
+        <div className="w-1/2 bg-white flex-col justify-center items-center text-white p-8 hidden md:flex">
+          <img src={Logo} alt="Admin Logo" className="w-3/4 mb-8" />
+          <h1 className="text-3xl font-bold mb-4 text-black">Welcome!</h1>
+          <p className="block text-xl text-gray-700 mb-2 font-bold text-center">
+            Join us today to enjoy all the amazing features.
+          </p>
+        </div>
+
         {/* Left Column (Form) */}
-        <div className="w-1/2 p-8">
-          <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
-            Register
-          </h1>
+        <div className="w-full md:w-1/2 p-8">
+          <h1 className=" mt-12 text-3xl font-bold text-blue-600 mb-6 text-center">Register</h1>
           <form onSubmit={handleRegister} className="space-y-4">
             {/* First Name */}
             <div className="form-control">
-              <label className="block text-sm  text-gray-700 mb-2 font-bold">First Name</label>
+              <label className="block text-sm text-gray-700 mb-2 font-bold">First Name</label>
               <input
                 type="text"
                 name="fname"
@@ -117,7 +121,7 @@ const SignUp = () => {
             </div>
             {/* Last Name */}
             <div className="form-control">
-              <label className="block text-sm  text-gray-700 mb-2 font-bold">Last Name</label>
+              <label className="block text-sm text-gray-700 mb-2 font-bold">Last Name</label>
               <input
                 type="text"
                 name="lname"
@@ -130,7 +134,7 @@ const SignUp = () => {
             </div>
             {/* Email */}
             <div className="form-control">
-              <label className="block text-sm  text-gray-700 mb-2 font-bold">Email</label>
+              <label className="block text-sm text-gray-700 mb-2 font-bold">Email</label>
               <input
                 type="email"
                 name="email"
@@ -143,7 +147,7 @@ const SignUp = () => {
             </div>
             {/* Password */}
             <div className="form-control relative">
-              <label className="block text-sm  text-gray-700 mb-2 font-bold">Password</label>
+              <label className="block text-sm text-gray-700 mb-2 font-bold">Password</label>
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -180,23 +184,9 @@ const SignUp = () => {
             </Link>
           </p>
         </div>
-
-        {/* Right Column (Logo and Welcome Message) */}
-        <div className="w-1/2 bg-white flex flex-col justify-center items-center text-white p-8">
-          <img src={Logo} alt="Admin Logo" className="w-3/4 mb-8" />
-          <h1 className="text-3xl font-bold mb-4">Welcome!</h1>
-          <p className="block text-xl  text-gray-700 mb-2 font-bold text-center">
-            Join us today to enjoy all the amazing features.
-          </p>
-        </div>
       </div>
     </div>
   );
 };
 
 export default SignUp;
-
-
-
-
-
