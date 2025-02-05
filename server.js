@@ -27,7 +27,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.post('https://prestige-weld.vercel.app/api/create-payment', async (req, res) => {
+app.post('/create-payment', async (req, res) => {
     try {
         const { paymentMethodId, appointmentData, usedTokenPoints, finalPrice, userId } = req.body;
 
