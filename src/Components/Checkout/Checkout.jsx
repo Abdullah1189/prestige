@@ -2,33 +2,34 @@ import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { auth, db } from "../../firebase/firebase.config";
-import { doc, getDoc, updateDoc, runTransaction } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useLocation, useNavigate } from "react-router-dom";
+
+// Stripe Public Key
+const stripePromise = loadStripe("pk_test_51QMnNZFRHQLYw36zmxrPmLBUadRJ7K8EELRiFMUbP1PMAxeIoO9FOAJMawyycbNeqSLp5m88Ebv9yjgYgMv5lyxW00wVrdCtlM");
 
 const TOKEN_TO_DOLLAR_RATIO = 5;
 
-function tokenPointsToDollars(tokenPoints) {
-    return tokenPoints / TOKEN_TO_DOLLAR_RATIO;
-}
+const tokenPointsToDollars = (tokenPoints) => tokenPoints / TOKEN_TO_DOLLAR_RATIO;
 
-const stripePromise = loadStripe("pk_test_51QMnNZFRHQLYw36zmxrPmLBUadRJ7K8EELRiFMUbP1PMAxeIoO9FOAJMawyycbNeqSLp5m88Ebv9yjgYgMv5lyxW00wVrdCtlM");
-
-const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, onTokenPointsChange, errorMessage }) => {
+// 🏗 **Checkout Form Component**
+const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, usedTokenPoints, setUsedTokenPoints }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!stripe || !elements) {
-            alert("Stripe has not loaded yet. Please try again.");
+            alert("Stripe is not ready yet. Please wait.");
             return;
         }
 
         setLoading(true);
 
+        // Create payment method
         const { error, paymentMethod } = await stripe.createPaymentMethod({
             type: "card",
             card: elements.getElement(CardElement),
@@ -39,43 +40,36 @@ const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, onTokenPointsC
         });
 
         if (error) {
-            console.error("Payment error:", error);
-            alert(error.message);
+            setErrorMessage(error.message);
             setLoading(false);
             return;
         }
 
         try {
-            const response = await fetch('https://prestige-weld.vercel.app/api/create-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            const response = await fetch("https://backend-dusky-xi-41.vercel.app/create-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     paymentMethodId: paymentMethod.id,
-                    appointmentData: {
-                        ...appointmentData,
-                        appointmentId: appointmentData.id,
-                    },
-                    usedTokenPoints: onTokenPointsChange,
+                    appointmentData,
+                    usedTokenPoints,
                     finalPrice,
                     userId: appointmentData.userId,
                 }),
+                mode: "cors",
             });
 
             const data = await response.json();
 
             if (data.success) {
-                alert("Payment successful and appointment saved!");
-                navigate('/appointment-confirmation', { state: { appointmentId: data.appointmentId } });
+                alert("Payment successful! Your appointment is confirmed.");
+                navigate("/appointment-confirmation", { state: { appointmentId: data.appointmentId } });
             } else {
-                alert(data.error || "Payment failed.");
-                console.error("Server error:", data.error);
+                setErrorMessage(data.error || "Payment failed.");
             }
-
         } catch (err) {
-            console.error("Error processing payment:", err);
-            alert("An error occurred. Please try again later.");
+            console.error("Payment error:", err);
+            setErrorMessage("An error occurred while processing payment.");
         } finally {
             setLoading(false);
         }
@@ -86,32 +80,13 @@ const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, onTokenPointsC
             <CardElement
                 options={{
                     style: {
-                        base: {
-                            fontSize: "16px",
-                            color: "#424770",
-                            "::placeholder": {
-                                color: "#aab7c4",
-                            },
-                        },
-                        invalid: {
-                            color: "#9e2146",
-                        },
+                        base: { fontSize: "16px", color: "#424770" },
+                        invalid: { color: "#9e2146" },
                     },
                 }}
                 className="p-3 border rounded-md"
             />
-            <div className="flex flex-col">
-                <label className="font-bold">Use Token Points:</label>
-                <input
-                    type="number"
-                    min="0"
-                    max={tokenPoints}
-                    placeholder="Enter number of tokens , 5 Tokens = $1"
-                    className="border rounded-md p-2"
-                    onChange={(e) => onTokenPointsChange(e.target.value)}
-                />
-                {errorMessage && <span className="text-red-500">{errorMessage}</span>}
-            </div>
+            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             <button
                 type="submit"
                 disabled={!stripe || loading}
@@ -123,20 +98,44 @@ const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, onTokenPointsC
     );
 };
 
-
+// 🏗 **Main Checkout Component**
 const Checkout = () => {
     const navigate = useNavigate();
     const { state: appointmentData } = useLocation();
-    const [tokenPoints, setTokenPoints] = useState(null);
+    const [tokenPoints, setTokenPoints] = useState(0);
     const [usedTokenPoints, setUsedTokenPoints] = useState(0);
     const [finalPrice, setFinalPrice] = useState(0);
     const [errorMessage, setErrorMessage] = useState("");
-    const [loadingTokenPoints, setLoadingTokenPoints] = useState(true);
-    const [user, setUser] = useState(null);
 
+    useEffect(() => {
+        if (!appointmentData) {
+            navigate("/products");
+            return;
+        }
+        setFinalPrice(appointmentData.price);
+    }, [appointmentData, navigate]);
 
-    const handleTokenPointsChange = (value) => {
-        const points = parseInt(value) || 0;
+    useEffect(() => {
+        const fetchUserTokenPoints = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+                if (userDoc.exists()) {
+                    setTokenPoints(userDoc.data().tokenPoints || 0);
+                }
+            } catch (error) {
+                console.error("Error fetching user token points:", error);
+            }
+        };
+
+        fetchUserTokenPoints();
+    }, []);
+
+    const handleTokenPointsChange = (e) => {
+        const points = parseInt(e.target.value) || 0;
 
         if (points > tokenPoints) {
             setErrorMessage("You cannot use more token points than you have.");
@@ -146,59 +145,11 @@ const Checkout = () => {
         }
 
         setErrorMessage("");
-        const maxDiscountPoints = Math.min(points, tokenPoints);
-        const discountDollars = tokenPointsToDollars(maxDiscountPoints);
-        setUsedTokenPoints(maxDiscountPoints);
-        setFinalPrice(appointmentData.price - discountDollars);
+        setUsedTokenPoints(points);
+        setFinalPrice(appointmentData.price - tokenPointsToDollars(points));
     };
 
-    useEffect(() => {
-        if (!appointmentData) {
-            navigate('/products');
-            return;
-        }
-        setFinalPrice(appointmentData.price);
-    }, [appointmentData, navigate]);
-
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((authUser) => {
-            setUser(authUser);
-        });
-        return unsubscribe;
-    }, []);
-
-
-    useEffect(() => {
-        const fetchUserToken = async () => {
-            setLoadingTokenPoints(true);
-            if (!user) {
-                setLoadingTokenPoints(false);
-                return;
-            }
-
-            try {
-                const userRef = doc(db, "users", user.uid);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    setTokenPoints(userData.tokenPoints || 0);
-                } else {
-                    console.error("User document not found!");
-                }
-            } catch (error) {
-                console.error("Error fetching user token points:", error);
-            } finally {
-                setLoadingTokenPoints(false);
-            }
-        };
-
-        fetchUserToken();
-    }, [user]);
-
-    if (!appointmentData) {
-        return <p>Invalid appointment data. Please try again.</p>;
-    }
+    if (!appointmentData) return <p>Invalid appointment data.</p>;
 
     return (
         <div className="p-8 max-w-4xl mx-auto mt-16">
@@ -208,18 +159,30 @@ const Checkout = () => {
                     <strong>Service:</strong> {appointmentData.serviceName} <br />
                     <strong>Shop:</strong> {appointmentData.shopName} <br />
                     <strong>Original Price:</strong> ${appointmentData.price.toFixed(2)} <br />
-                    <p>Discount: ${tokenPointsToDollars(usedTokenPoints).toFixed(2)}</p>
+                    <strong>Discount:</strong> ${tokenPointsToDollars(usedTokenPoints).toFixed(2)} <br />
                     <strong>Final Price:</strong> ${finalPrice.toFixed(2)} <br />
                     <strong className="text-green-600">Current Token Points: {tokenPoints}</strong>
                 </p>
+            </div>
+            <div className="flex flex-col mb-4">
+                <label className="font-bold">Use Token Points:</label>
+                <input
+                    type="number"
+                    min="0"
+                    max={tokenPoints}
+                    placeholder="Enter token points (5 points = $1)"
+                    className="border rounded-md p-2"
+                    onChange={handleTokenPointsChange}
+                />
+                {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             </div>
             <Elements stripe={stripePromise}>
                 <CheckoutForm
                     appointmentData={appointmentData}
                     tokenPoints={tokenPoints}
                     finalPrice={finalPrice}
-                    onTokenPointsChange={handleTokenPointsChange}
-                    errorMessage={errorMessage}
+                    usedTokenPoints={usedTokenPoints}
+                    setUsedTokenPoints={setUsedTokenPoints}
                 />
             </Elements>
         </div>
