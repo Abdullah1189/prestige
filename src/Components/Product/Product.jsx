@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Import toastify styles
+import "react-toastify/dist/ReactToastify.css";
 import { ShoppingCart, X } from "lucide-react";
-import { getAuth } from "firebase/auth"; // Import getAuth
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 
 const productData = [
@@ -107,17 +108,53 @@ const productData = [
 
   },
 ];
-
 const Product = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState({});
   const [quantities, setQuantities] = useState({});
   const [cartVisible, setCartVisible] = useState(false);
+  const [products, setProducts] = useState([]); // Store products from Firestore
   const navigate = useNavigate();
-  const auth = getAuth(); // Initialize Firebase Auth
+  const auth = getAuth();
+  const db = getFirestore(); // Initialize Firestore
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+          const productsCollection = collection(db, "products");
+          const productsSnapshot = await getDocs(productsCollection);
+          const productsData = productsSnapshot.docs.map((doc) => {
+              const data = doc.data();
+              return {
+                  id: doc.id, // Keep the ID as is (string)
+                  title: data.name || "",
+                  description: data.description || "",
+                  price: data.price || "",
+                  image: data.image || "",
+                  rating: data.rating || 0,
+                  stock: data.stock || 0,
+              };
+          });
+          setProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        // Handle error, e.g., display an error message to the user
+        toast.error("Error fetching products. Please try again later.", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    };
+
+    fetchProducts();
+  }, []); // Empty dependency array ensures this runs only once on mount
 
 
-  const filteredProduct = productData.filter((item) =>
+  const filteredProduct = products.filter((item) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -132,17 +169,26 @@ const Product = () => {
 
   const addToCart = (id) => {
     const quantityToAdd = quantities[id] || 0;
-    if (quantityToAdd > 0) {
+    const product = products.find((p) => p.id === id); // Find the product by ID
+
+    if (quantityToAdd > 0 && product && product.stock > 0) { // Check if in stock
       setCart((prev) => ({
         ...prev,
         [id]: (prev[id] || 0) + quantityToAdd,
       }));
-      setQuantities((prev) => ({ ...prev, [id]: 0 })); // Reset selected quantity
-
-      // Show toast notification
+      setQuantities((prev) => ({ ...prev, [id]: 0 }));
       toast.success("Product added to cart!", {
         position: "top-right",
-        autoClose: 5000, // 5 seconds
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } else if (!product || product.stock === 0) {
+      toast.error("This product is currently out of stock.", {
+        position: "top-right",
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -150,6 +196,7 @@ const Product = () => {
       });
     }
   };
+
 
   const removeFromCart = (id) => {
     setCart((prev) => {
@@ -161,42 +208,50 @@ const Product = () => {
 
   const calculateTotal = () =>
     Object.entries(cart).reduce((total, [id, quantity]) => {
-      const product = productData.find((item) => item.id === parseInt(id));
-      return total + parseFloat(product.price.slice(1)) * quantity;
+        const product = products.find((item) => item.id === id);
+        if (product) {
+            const price = parseFloat(product.price.replace(/[$,]/g, '')); // Handle $, commas in price
+            return total + price * quantity;
+        } else {
+            console.error(`Product with ID ${id} not found for calculating total.`);
+            return total;
+        }
     }, 0);
 
-    const handleCheckout = () => {
-      const user = auth.currentUser; // Get the current user
+  const handleCheckout = () => {
+    const user = auth.currentUser;
     if (!user) {
-        // Handle the case where the user is not logged in. Maybe redirect to the login page
-        alert("Please Login First")
-        return;
+      alert("Please Login First");
+      return;
     }
-    const userId = user.uid; // Get the user ID
+    const userId = user.uid;
     const userName = user.displayName;
     const userEmail = user.email;
+    const cartItemsWithDetails = Object.entries(cart).map(([id, quantity]) => {
+      const product = products.find((item) => item.id === id);
+      if (product) {
+          return {
+              id: id,
+              name: product.title,
+              price: product.price,
+              quantity,
+              userId,
+              userName,
+              userEmail,
+          };
+      } else {
+          console.error(`Product with ID ${id} not found for cart details.`);
+          return null;
+      }
+  }).filter(item => item !== null); 
 
-     const cartItemsWithDetails = Object.entries(cart).map(([id, quantity]) => {
-        const product = productData.find((item) => item.id === parseInt(id));
-        return {
-            id: parseInt(id),
-            name: product.title,
-            price: product.price,
-            quantity,
-            userId,
-            userName,
-            userEmail,
-        };
+    const total = calculateTotal();
+
+    navigate("/productcheckout", {
+      state: { cartItems: cartItemsWithDetails, total, userId },
     });
-  
-      const total = calculateTotal();
-  
-      navigate("/productcheckout", {
-        state: { cartItems: cartItemsWithDetails, total,userId },
-      });
-      setCartVisible(false); // Close the cart modal after checkout
-    };
-  
+    setCartVisible(false);
+  };
   
 
   return (
@@ -231,83 +286,72 @@ const Product = () => {
         </div>
       </div>
 
-      {/* Cart Modal */}
       {cartVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-              onClick={() => setCartVisible(false)}
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <h3 className="text-xl font-bold mb-4">Shopping Cart</h3>
-            {Object.keys(cart).length > 0 ? (
-              <div className="space-y-4">
-                {Object.entries(cart).map(([id, quantity]) => {
-                  const product = productData.find(
-                    (item) => item.id === parseInt(id)
-                  );
-                  return (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between border-b pb-2"
-                    >
-                      <div>
-                        <h4 className="font-medium">{product.title}</h4>
-                        <p className="text-sm text-gray-600">
-                          ${product.price.slice(1)} x {quantity} = $
-                          {(
-                            parseFloat(product.price.slice(1)) * quantity
-                          ).toFixed(2)}
-                        </p>
-                      </div>
-                      <button
-                        className="text-red-500 hover:underline"
-                        onClick={() => removeFromCart(id)}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  );
-                })}
-                <div className="font-bold text-lg">
-                  Total: ${calculateTotal().toFixed(2)}
-                </div>
-                <button
-          className="w-full bg-teal-600 text-white py-2 rounded-lg shadow hover:bg-teal-700"
-          onClick={handleCheckout} // Call handleCheckout function
-        >
-          Go to Checkout
-        </button>
-              </div>
-            ) : (
-              <p>Your cart is empty!</p>
-            )}
-          </div>
-        </div>
-      )}
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-96 shadow-lg relative">
+                        {/* ... cart modal content */}
+                        <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-800" onClick={() => setCartVisible(false)}>
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h3 className="text-xl font-bold mb-4">Shopping Cart</h3>
+                        {Object.keys(cart).length > 0 ? (
+                            <div className="space-y-4">
+                                {Object.entries(cart).map(([id, quantity]) => {
+                                    const product = products.find((item) => item.id === id); // Use products
 
+                                    if (!product) {
+                                        console.error(`Product with ID ${id} not found!`);
+                                        return null; // Important: Return null if product not found
+                                    }
+
+                                    return (
+                                        <div key={id} className="flex items-center justify-between border-b pb-2">
+                                            <div>
+                                                <h4 className="font-medium">{product.title}</h4>
+                                                <p className="text-sm text-gray-600">
+                                                    ${product.price.replace(/[$,]/g, '')} x {quantity} = $
+                                                    {(parseFloat(product.price.replace(/[$,]/g, '')) * quantity).toFixed(2)}
+                                                </p>
+                                            </div>
+                                            <button className="text-red-500 hover:underline" onClick={() => removeFromCart(id)}>
+                                                Remove
+                                            </button>
+                                        </div>
+                                    );
+                                }).filter(item => item !== null)} {/* Filter out nulls */}
+                                <div className="font-bold text-lg">
+                                    Total: ${calculateTotal().toFixed(2)}
+                                </div>
+                                <button className="w-full bg-teal-600 text-white py-2 rounded-lg shadow hover:bg-teal-700" onClick={handleCheckout}>
+                                    Go to Checkout
+                                </button>
+                            </div>
+                        ) : (
+                            <p>Your cart is empty!</p>
+                        )}
+                    </div>
+                </div>
+            )}
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProduct.map((item) => (
-          <div
-            key={item.id}
-            className={`p-4 bg-white rounded-lg shadow-md flex flex-col relative group ${item.stock === 0 ? 'opacity-50' : ''}`} // Conditionally reduce opacity
-          >
-            <img
-              src={item.image || "Image not found"}
-              alt={item.title}
-              className="rounded-lg mb-4 w-full h-48 object-cover"
-            />
-            <h3 className="text-xl font-semibold text-teal-700 mb-2 truncate">
-              {item.title}
-            </h3>
-            <p className="text-gray-600 mb-4 line-clamp-2">{item.description}</p>
-            <p className="text-teal-600 font-semibold mb-2">{item.price}</p>
-            <span className="text-yellow-500 font-medium">
-              Rating: {item.rating} ★
-            </span>
+          {filteredProduct.map((item) => ( // Use filteredProduct
+            <div
+              key={item.id} // Use item.id from Firestore
+              className={`p-4 bg-white rounded-lg shadow-md flex flex-col relative group ${item.stock === 0 ? 'opacity-50' : ''}`}
+            >
+             <img
+                  src={item.image || "Image not found"} // Access item.image
+                  alt={item.title}
+                  className="rounded-lg mb-4 w-full h-48 object-cover"
+                />
+                <h3 className="text-xl font-semibold text-teal-700 mb-2 truncate">
+                  {item.title} {/* Access item.title */}
+                </h3>
+                <p className="text-gray-600 mb-4 line-clamp-2">{item.description}</p> {/* Access item.description */}
+                <p className="text-teal-600 font-semibold mb-2">{item.price}</p> {/* Access item.price */}
+                <span className="text-yellow-500 font-medium">
+                  Rating: {item.rating} ★ {/* Access item.rating */}
+                </span>
 
             {/* Out of Stock Overlay */}
             {item.stock === 0 && (
