@@ -52,6 +52,7 @@ const CheckoutForm = ({ appointmentData, finalPrice, usedTokenPoints }) => {
                     paymentMethodId: paymentMethod.id, // ✅ Corrected here
                     finalPrice 
                 }),
+                cors: "no-cors"
             });
     
             const data = await response.json();
