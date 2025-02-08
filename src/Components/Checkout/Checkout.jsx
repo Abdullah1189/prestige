@@ -2,22 +2,21 @@ import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { auth, db } from "../../firebase/firebase.config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import { useLocation, useNavigate } from "react-router-dom";
 
 // Stripe Public Key
 const stripePromise = loadStripe("pk_test_51QMnNZFRHQLYw36zmxrPmLBUadRJ7K8EELRiFMUbP1PMAxeIoO9FOAJMawyycbNeqSLp5m88Ebv9yjgYgMv5lyxW00wVrdCtlM");
 
 const TOKEN_TO_DOLLAR_RATIO = 5;
-
 const tokenPointsToDollars = (tokenPoints) => tokenPoints / TOKEN_TO_DOLLAR_RATIO;
 
 // 🏗 **Checkout Form Component**
-const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, usedTokenPoints, setUsedTokenPoints }) => {
+const CheckoutForm = ({ appointmentData, finalPrice, usedTokenPoints }) => {
     const stripe = useStripe();
     const elements = useElements();
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
     const handleSubmit = async (e) => {
@@ -26,9 +25,9 @@ const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, usedTokenPoint
             alert("Stripe is not ready yet. Please wait.");
             return;
         }
-
+    
         setLoading(true);
-
+    
         // Create payment method
         const { error, paymentMethod } = await stripe.createPaymentMethod({
             type: "card",
@@ -38,32 +37,36 @@ const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, usedTokenPoint
                 email: appointmentData.userEmail,
             },
         });
-
+    
         if (error) {
             setErrorMessage(error.message);
             setLoading(false);
             return;
         }
-
+    
         try {
-            const response = await fetch("https://backend-dusky-xi-41.vercel.app/create-payment", {
+            const response = await fetch("https://backend-jo0ohw2lg-abdullah1189s-projects.vercel.app/create-payment", { 
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    paymentMethodId: paymentMethod.id,
-                    appointmentData,
-                    usedTokenPoints,
-                    finalPrice,
-                    userId: appointmentData.userId,
+                body: JSON.stringify({ 
+                    paymentMethodId: paymentMethod.id, // ✅ Corrected here
+                    finalPrice 
                 }),
-                mode: "cors",
             });
-
+    
             const data = await response.json();
-
+    
             if (data.success) {
+                // Store the appointment in Firestore if payment succeeds
+                await addDoc(collection(db, "appointments"), {
+                    ...appointmentData,
+                    paymentStatus: "Paid",
+                    transactionId: data.transactionId, // Store Stripe transaction ID
+                    timestamp: new Date(),
+                });
+    
                 alert("Payment successful! Your appointment is confirmed.");
-                navigate("/appointment-confirmation", { state: { appointmentId: data.appointmentId } });
+                navigate("/appointment-confirmation", { state: { appointmentId: data.transactionId } });
             } else {
                 setErrorMessage(data.error || "Payment failed.");
             }
@@ -74,7 +77,7 @@ const CheckoutForm = ({ appointmentData, tokenPoints, finalPrice, usedTokenPoint
             setLoading(false);
         }
     };
-
+    
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <CardElement
@@ -179,10 +182,8 @@ const Checkout = () => {
             <Elements stripe={stripePromise}>
                 <CheckoutForm
                     appointmentData={appointmentData}
-                    tokenPoints={tokenPoints}
                     finalPrice={finalPrice}
                     usedTokenPoints={usedTokenPoints}
-                    setUsedTokenPoints={setUsedTokenPoints}
                 />
             </Elements>
         </div>
