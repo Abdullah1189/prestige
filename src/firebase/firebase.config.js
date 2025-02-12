@@ -7,12 +7,13 @@ import {getFirestore} from  "firebase/firestore"
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyA1vQ_BMXKM72DL6Y2r-zz6I0G6BCCjHzk",
-  authDomain: "presitage-car-detailing.firebaseapp.com",
-  projectId: "presitage-car-detailing",
-  storageBucket: "presitage-car-detailing.firebasestorage.app",
-  messagingSenderId: "549958700510",
-  appId: "1:549958700510:web:079d4d60dcb85f9639e14f"
+  apiKey: "AIzaSyAip3Xjb-rj9Tyh47tNgapvUT7kKQmpBUc",
+  authDomain: "fitness-pledge.firebaseapp.com",
+  projectId: "fitness-pledge",
+  storageBucket: "fitness-pledge.appspot.com",
+  messagingSenderId: "1095572765047",
+  appId: "1:1095572765047:web:e00e3e78995845bf7a8972",
+  measurementId: "G-5GV7KPNRJC"
 };
 
 // Initialize Firebase
