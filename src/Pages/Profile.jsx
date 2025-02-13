@@ -4,6 +4,8 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { FaTimes, FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa'; // Import icons
 import toast, { Toaster } from "react-hot-toast";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 
 
@@ -30,8 +32,10 @@ function Profile() {
                     setUser(userWithFullName);
                     setNewData({ ...userWithFullName }); // Initialize newData correctly
                     setTokenPoints(userData.tokenPoints || 0);
-                    setProfilePhoto(localStorage.getItem("profilePhoto") || "https://via.placeholder.com/150");
-                } else {
+                    // Get profile photo from Firestore, fallback to a placeholder if missing
+                setProfilePhoto(userData.profilePhoto || "https://via.placeholder.com/150");
+
+                  } else {
                     console.error("User document not found!");
                     navigate('/products');
                 }
@@ -44,17 +48,33 @@ function Profile() {
         return unsubscribe;
     }, [navigate]);
 
-    const handlePhotoUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                setProfilePhoto(reader.result);
-                localStorage.setItem("profilePhoto", reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    const handlePhotoUpload = async (e) => {
+      const file = e.target.files[0];
+      if (file && user) {
+          const storage = getStorage();
+          const storageRef = ref(storage, `profilePhotos/${user.id}`);
+  
+          try {
+              // Upload the file
+              await uploadBytes(storageRef, file);
+  
+              // Get the download URL
+              const downloadURL = await getDownloadURL(storageRef);
+  
+              // Update Firestore user document with the new profile photo URL
+              const userRef = doc(db, "users", user.id);
+              await updateDoc(userRef, { profilePhoto: downloadURL });
+  
+              // Update the state with the new profile photo
+              setProfilePhoto(downloadURL);
+              toast.success("✅ Profile photo updated successfully!");
+          } catch (error) {
+              console.error("Error uploading profile photo:", error);
+              toast.error("❌ Failed to upload profile photo.");
+          }
+      }
+  };
+  
 
     const handleInputChange = (e) => { // New input change handler
       const { name, value } = e.target;
@@ -88,7 +108,7 @@ if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
-        
+        <Toaster />
       </div>
     );
   }
@@ -168,7 +188,7 @@ return (
                           setNewData({ ...user });
                           setIsEditing(true);
                       }}
-                      className="mt-4 ml-10 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors duration-300" // Blue button
+                      className="mt-4  bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors duration-300" // Blue button
                   >
                       Edit Profile
                   </button>
