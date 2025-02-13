@@ -70,6 +70,7 @@ const SignUp = () => {
         tokenPoints: 0,
         location: "Kotla arab  ali khan",
         description: "I love to keep my car clean and shiny",
+        profilePhoto: "",
         createdAt: new Date().toISOString(),
       };
 
